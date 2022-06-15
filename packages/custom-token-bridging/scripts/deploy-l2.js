@@ -53,8 +53,6 @@ const main = async () => {
     await ethers.getContractFactory('L1Token')
   ).connect(l1Wallet)
   console.log('Deploying custom token to L1')
-  console.log('l1Gateway: ', l1Gateway);
-  console.log('l1Router: ', l1Router);
   const l1CustomToken = await L1CustomToken.deploy(l1Gateway, l1Router)
   await l1CustomToken.deployed()
   console.log(`custom token is deployed to L1 at ${l1CustomToken.address}`)
@@ -67,8 +65,6 @@ const main = async () => {
     await ethers.getContractFactory('L2Token')
   ).connect(l2Wallet)
   console.log('Deploying custom token to L2')
-  console.log('l2Gateway: ', l2Gateway);
-  console.log('l1CustomToken.address: ', l1CustomToken.address);
   const l2CustomToken = await L2CustomToken.deploy(
     l2Gateway,
     l1CustomToken.address

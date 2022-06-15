@@ -36,5 +36,12 @@ module.exports = {
         ? [process.env['DEVNET_PRIVKEY']]
         : [],
     },
+  
   },
+  etherscan: {
+    apiKey: {
+      rinkeby: process.env.ETHERSCAN_KEY, 
+      arbitrum: process.env.ARBISCAN_KEY
+    }
+  }
 }

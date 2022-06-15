@@ -20,6 +20,7 @@ pragma solidity ^0.6.11;
 
 import "./ICustomToken.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IGatewayRouter {
     function setGateway(
@@ -41,21 +42,85 @@ interface ICustomGateway {
     ) external payable returns (uint256);
 }
 
-contract L1Token is ICustomToken, ERC20 {
+contract L1Token is Ownable, ICustomToken, ERC20 {
     address public bridge;
     address public router;
     bool private shouldRegisterGateway;
 
+    // My vars
+    address public l1StakingAddress;
+    // Cap is 950,000,000 
+    // uint constant private _cap = 950000000 * (10e18);
+
+    // testnet has 9500 -> uncomment
+    uint constant private _cap = 9500 * (10e18);
+    // uint private immutable _cap;
+
+    mapping (address => bool) private _authorized;
+
+
     constructor(
         address _bridge,
-        address _router,
-        uint256 _premine
-    ) public ERC20("L1CustomToken", "LCT") {
+        address _router
+        // uint256 _premine
+        //"L1CustomToken", "LCT"
+    ) public ERC20("BotzCoins", "BOTZ") { 
         bridge = _bridge;
         router = _router;
-        _mint(msg.sender, _premine);
+        // _mint(msg.sender, _premine);
+
+        // Mint 450 mil (half supply) and then transfer to l2 botzBank manually 
+        // this can be done later if needed by authorizing
+        // _mint(msg.sender, 450000000);
     }
 
+    // new functions
+    modifier onlyAuthorized(address caller) {
+        require(_authorized[caller], "not authorized");
+        _;
+    }
+
+    function authorize(address a) public onlyOwner {
+        _authorized[a] = true;
+    }
+
+    function unauthorize(address a) public onlyOwner {
+        _authorized[a] = false;
+    }
+
+    function isAuthorized(address a) public view returns (bool) {
+        return _authorized[a];
+    }
+
+    // keep track how much staking has minted here
+    // only the staking contract should be able to call this
+    // mint min(amount, _cap - totalSupply)
+    function mint(address account, uint amount) public onlyAuthorized(msg.sender) {
+        // require(ERC20.totalSupply() + amount <= cap(), "cap exceeded");
+        uint totSupply = ERC20.totalSupply();
+        require(amount > 0, "cant mint 0");
+        require(totSupply < _cap, "total supply minted");
+        
+        // not enough to mint 'amount' but still some tokens can be minted
+        if (totSupply + amount > _cap) {
+            // ! safe math in earlier verison
+            uint maxAmount = _cap - totSupply;
+            assert(maxAmount <= amount);
+            _mint(account, maxAmount);
+            assert(ERC20.totalSupply() == _cap);
+        }
+
+        else {
+            _mint(account, amount);
+            assert(ERC20.totalSupply() <= _cap);
+        }
+    }
+
+    function cap() public view returns (uint) {
+        return _cap;
+    }
+
+    // old functions
     function transferFrom(
         address sender,
         address recipient,
@@ -72,6 +137,8 @@ contract L1Token is ICustomToken, ERC20 {
     {
         return ERC20.balanceOf(account);
     }
+
+
 
     /// @dev we only set shouldRegisterGateway to true when in `registerTokenOnL2`
     function isArbitrumEnabled() external view override returns (uint8) {
