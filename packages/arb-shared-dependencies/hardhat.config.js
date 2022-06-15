@@ -41,7 +41,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       rinkeby: process.env.ETHERSCAN_KEY, 
-      arbitrum: process.env.ARBISCAN_KEY
+      // arbitrum: process.env.ARBISCAN_KEY
     }
   }
 }
