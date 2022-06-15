@@ -50,10 +50,10 @@ contract L1Token is Ownable, ICustomToken, ERC20 {
     // My vars
     address public l1StakingAddress;
     // Cap is 950,000,000 
-    // uint constant private _cap = 950000000 * (10e18);
+    // uint constant private _cap = 950000000 * (1 ether);
 
     // testnet has 9500 -> uncomment
-    uint constant private _cap = 9500 * (10e18);
+    uint constant private _cap = 9500 * (1 ether);
     // uint private immutable _cap;
 
     mapping (address => bool) private _authorized;
